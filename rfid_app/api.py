@@ -2,38 +2,42 @@ import frappe
 from frappe.utils import now
 
 # 🔹 Item list with Batch
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_items():
-    return frappe.db.sql("""
+    data = frappe.db.sql("""
         SELECT 
             i.item_code,
             i.item_name,
-            b.name as batch_no
+            IFNULL(b.name, '') as batch_no
         FROM `tabItem` i
         LEFT JOIN `tabBatch` b
         ON b.item = i.name
     """, as_dict=True)
 
+    return {"data": data}   # <-- IMPORTANT
+
 
 # 🔹 Stock data with Batch
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_stock():
-    return frappe.db.sql("""
+    data = frappe.db.sql("""
         SELECT 
-            b.item_code,
-            b.warehouse,
-            b.batch_no,
-            b.actual_qty
-        FROM `tabBin` b
-        WHERE b.actual_qty > 0
+            item_code,
+            warehouse,
+            batch_no,
+            actual_qty
+        FROM `tabBin`
+        WHERE actual_qty > 0
     """, as_dict=True)
+
+    return {"data": data}   # <-- IMPORTANT
 
 
 # 🔹 Called after RFID scan
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_stock_from_rfid(epc, warehouse, batch_no=None):
 
-    item_code = epc   # mapping logic change kar sakte ho
+    item_code = epc
 
     item_row = {
         "item_code": item_code,
@@ -41,7 +45,6 @@ def update_stock_from_rfid(epc, warehouse, batch_no=None):
         "t_warehouse": warehouse
     }
 
-    # batch add only if available
     if batch_no:
         item_row["batch_no"] = batch_no
 
@@ -55,7 +58,7 @@ def update_stock_from_rfid(epc, warehouse, batch_no=None):
     se.submit()
 
     log(epc, item_code, batch_no, "Scan", warehouse, "Success")
-    return "Stock Updated"
+    return {"status": "ok"}   # <-- IMPORTANT
 
 
 def log(epc, item_code, batch_no, action, warehouse, status):
