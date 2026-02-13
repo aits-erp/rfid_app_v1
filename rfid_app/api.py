@@ -101,3 +101,27 @@ def tagway_dump():
         json.dump({"message": data}, f)
 
     return "OK"
+
+
+
+@frappe.whitelist(allow_guest=True)
+def branch_master():
+    return frappe.db.sql("""
+        SELECT 
+            name as `Branch Code`,
+            warehouse_name as `Branch Name`
+        FROM `tabWarehouse`
+    """, as_dict=True)
+
+
+
+@frappe.whitelist(allow_guest=True)
+def stock_branch_wise():
+    return frappe.db.sql("""
+        SELECT 
+            item_code as SKU,
+            warehouse as Branch,
+            actual_qty as `Stock Qty`
+        FROM `tabBin`
+        WHERE actual_qty > 0
+    """, as_dict=True)
