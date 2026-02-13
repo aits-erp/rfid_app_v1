@@ -85,3 +85,19 @@ def tagway_items():
     """, as_dict=True)
 
     return data   # <-- DIRECT LIST
+
+
+
+
+@frappe.whitelist(allow_guest=True)
+def tagway_dump():
+    import json, os
+    data = frappe.db.sql("""
+        SELECT item_code as RFID, item_name as NAME FROM tabItem
+    """, as_dict=True)
+
+    path = "/home/frappe/frappe-bench/sites/aits/public/tagway.json"
+    with open(path, "w") as f:
+        json.dump({"message": data}, f)
+
+    return "OK"
