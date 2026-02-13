@@ -69,3 +69,19 @@ def log(epc, item_code, batch_no, action, warehouse, status):
         "status": status,
         "datetime": now()
     }).insert(ignore_permissions=True)
+
+
+# 🔹 Tagway direct items (NO WRAPPER)
+@frappe.whitelist(allow_guest=True)
+def tagway_items():
+    data = frappe.db.sql("""
+        SELECT 
+            i.item_code as RFID,
+            i.item_name as NAME,
+            IFNULL(b.name, '') as BATCH
+        FROM `tabItem` i
+        LEFT JOIN `tabBatch` b
+        ON b.item = i.name
+    """, as_dict=True)
+
+    return data   # <-- DIRECT LIST
