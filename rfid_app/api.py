@@ -125,3 +125,18 @@ def stock_branch_wise():
         FROM `tabBin`
         WHERE actual_qty > 0
     """, as_dict=True)
+
+@frappe.whitelist(allow_guest=True)
+def sales_stock_audit():
+    return frappe.db.sql("""
+        SELECT
+            sii.item_code as SKU,
+            si.set_warehouse as Branch,
+            SUM(sii.qty) as `Sold Qty`,
+            MAX(si.posting_date) as `Last Sale Date`
+        FROM `tabSales Invoice Item` sii
+        JOIN `tabSales Invoice` si
+            ON sii.parent = si.name
+        WHERE si.docstatus = 1
+        GROUP BY sii.item_code, si.set_warehouse
+    """, as_dict=True)
