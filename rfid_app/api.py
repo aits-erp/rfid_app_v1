@@ -4,7 +4,7 @@ from frappe.utils import now
 # 🔹 Item list with Batch
 @frappe.whitelist(allow_guest=True)
 def get_items():
-    data = frappe.db.sql("""
+    return frappe.db.sql("""
         SELECT 
             i.item_code,
             i.item_name,
@@ -14,13 +14,11 @@ def get_items():
         ON b.item = i.name
     """, as_dict=True)
 
-    return {"data": data}   # <-- IMPORTANT
-
 
 # 🔹 Stock data with Batch
 @frappe.whitelist(allow_guest=True)
 def get_stock():
-    data = frappe.db.sql("""
+    return frappe.db.sql("""
         SELECT 
             item_code,
             warehouse,
@@ -29,8 +27,6 @@ def get_stock():
         FROM `tabBin`
         WHERE actual_qty > 0
     """, as_dict=True)
-
-    return {"data": data}   # <-- IMPORTANT
 
 
 # 🔹 Called after RFID scan
@@ -58,7 +54,8 @@ def update_stock_from_rfid(epc, warehouse, batch_no=None):
     se.submit()
 
     log(epc, item_code, batch_no, "Scan", warehouse, "Success")
-    return {"status": "ok"}   # <-- IMPORTANT
+
+    return "OK"   # simple string enough
 
 
 def log(epc, item_code, batch_no, action, warehouse, status):
